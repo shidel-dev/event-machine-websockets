@@ -69,7 +69,8 @@
 			    	if (msg.data.split(":")[0] == "id"){
 			    		id = msg.data.split(":")[1];
               send("alias", id + ":" + $('#alias').val())
-              id = $('#alias').val()
+              id = $('#alias').val();
+              startGame();
               // $(".client[name='" + id + "']").remove()
 			    	}else if (msg.data.split(":")[0] == "message"){
 			        addMessage( msg.data.split(":")[1]);

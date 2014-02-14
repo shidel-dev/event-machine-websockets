@@ -1,4 +1,4 @@
-$(document).ready(function() {
+function startGame() {
 
   $('.box').click(function(event) {
     event.preventDefault();
@@ -6,7 +6,7 @@ $(document).ready(function() {
     $(event.target).html("<h1>" + symbol +"</h1>");
     send("move",$(event.target).attr('id'))
   });
-});
+}
 
 function updateBoard(cord){
   if(symbol==="O"){
