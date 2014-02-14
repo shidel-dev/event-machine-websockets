@@ -19,23 +19,24 @@ EventMachine.run do
     end
   end
 
- @clients = []
+ $clients = []
 
   EM::WebSocket.start(:host => '0.0.0.0', :port => '3001') do |ws|
     ws.onopen do |handshake|
-      @clients << ws
-      ws.send "Connected to #{handshake.path}."
+    	user = Random.rand(1...1000)
+      $clients << {sock: ws, user: user}
+      ws.send "you are user #{user}."
     end
 
     ws.onclose do
       ws.send "Closed."
-      @clients.delete ws
+      $clients.delete ws
     end
 
     ws.onmessage do |msg|
       puts "Received Message: #{msg}"
-      @clients.each do |socket|
-        socket.send msg
+      $clients.each do |socket|
+        socket[:sock].send msg
       end
     end
   end
