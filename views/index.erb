@@ -9,7 +9,14 @@
 
         <input type="text" id="message">
         <button id="disconnect">Disconnect</button>
-
+        <input type="text" id="message">
+        <button id="disconnect">Disconnect</button>
+        
+        <%unless $clients.empty?%>
+          <%$clients.each do |client|%>
+        	  <p><%=client[:user]%></p>
+          <%end%>	
+        <%end%>
 
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
@@ -18,7 +25,7 @@
 			  $("#chat-log").append("" + msg + "");
 			}
 			var socket, host;
-			host = "ws://localhost:3001";
+			host = "ws://<%=request.host%>:3001";
 
 			function connect() {
 			  try {
