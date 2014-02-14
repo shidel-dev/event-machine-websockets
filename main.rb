@@ -23,20 +23,26 @@ EventMachine.run do
     get '/' do
       erb :index
     end
+
+
   end
 
  $clients = {}
 
   EM::WebSocket.start(:host => '0.0.0.0', :port => '3001') do |ws|
     ws.onopen do |handshake|
-    	user = Random.rand(1...1000)
+    	user = Random.rand(1...1000).to_s
       $clients[user] = {sock: ws}
       ws.send "id:#{user}"
+      puts user
     end
 
     ws.onclose do
-      ws.send "Closed."
-      $clients.delete ws
+      $clients.each_key do |client|
+        if $clients[client][:sock] == ws
+          $clients.delete(client)
+        end
+      end
     end
 
     ws.onmessage do |msg|
@@ -47,20 +53,26 @@ EventMachine.run do
       user_id = splitMsg[2]
       case command
         when 'join'
-          $clients[user_id.to_i][:pair] = message.to_i
-          $clients[message.to_i][:pair] = user_id.to_i
+          $clients[user_id][:pair] = message
+          $clients[message][:pair] = user_id
+          send(message,"set:O")
           puts $clients
         when 'chat'
-          send($clients[user_id.to_i][:pair],'message: receved ' + message + ' from #{user_id}')
-          send(user_id,'sent: '+ message)
+          send($clients[user_id][:pair],"message: #{user_id} =>  " + message )
+          send(user_id,'message: you=>  '+ message)
         when 'move'
-          send($clients[user_id.to_i][:pair],'move:'+ message)
+          send($clients[user_id][:pair],'move:'+ message)
+        when 'alias'
+         clone = $clients[message]
+         $clients[user_id] = clone
+         $clients.delete(message)
+         puts $clients
       end
 
     end
 
     def send(target, text)
-     $clients[target.to_i][:sock].send text
+     $clients[target][:sock].send text
     end
   end
 
