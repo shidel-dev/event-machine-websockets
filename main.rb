@@ -10,6 +10,8 @@ require 'sinatra'
 
 
 EventMachine.run do
+	# Sinatra::Application.set :bind, "0.0.0.0"
+
   class App < Sinatra::Base
  	
     get '/' do
@@ -19,7 +21,7 @@ EventMachine.run do
 
  @clients = []
 
-  EM::WebSocket.start(:host => '192.168.1.148', :port => '3001') do |ws|
+  EM::WebSocket.start(:host => '0.0.0.0', :port => '3001') do |ws|
     ws.onopen do |handshake|
       @clients << ws
       ws.send "Connected to #{handshake.path}."
@@ -39,6 +41,6 @@ EventMachine.run do
   end
 
 
-  App.run! :port => 3000
+  App.run! :port => 3000, :bind => "0.0.0.0"
 end
 
