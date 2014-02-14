@@ -9,9 +9,9 @@
 
         <input type="text" id="message">
         <button id="disconnect">Disconnect</button>
-        <input type="text" id="message">
-        <button id="disconnect">Disconnect</button>
+        <input type="text" id="friend" placeholder='target'>
         
+
         <%unless $clients.empty?%>
           <%$clients.each do |client|%>
         	  <p><%=client[:user]%></p>
@@ -22,9 +22,9 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script>
 			function addMessage(msg) {
-			  $("#chat-log").append("" + msg + "");
+			  $("#chat-log").append("<p>" + msg + "</p>");
 			}
-			var socket, host;
+			var socket, host, id;
 			host = "ws://<%=request.host%>:3001";
 
 			function connect() {
@@ -42,6 +42,11 @@
 			    }
 
 			    socket.onmessage = function(msg) {
+			    	console.log(msg.data.split(":"))
+			    	if (msg.data.split(":")[0] == "id"){
+			    		id = msg.data.split(":")[1];
+			    	}
+
 			      addMessage("Received: " + msg.data);
 			    }
 			  } catch(exception) {
@@ -54,13 +59,14 @@
 			});
 			function send() {
 			  var text = $("#message").val();
+			  var friend = $("#friend").val();
 			  if (text == '') {
 			    addMessage("Please Enter a Message");
 			    return;
 			  }
 
 			  try {
-			    socket.send(text);
+			    socket.send(id+','+text+','+friend);
 			    addMessage("Sent: " + text)
 			  } catch(exception) {
 			    addMessage("Failed To Send")
@@ -75,6 +81,7 @@
 			$("#disconnect").click(function() {
   				socket.close()
 				});
+			
     </script>
   </body>
 </html>
