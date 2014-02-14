@@ -25,7 +25,7 @@ EventMachine.run do
     ws.onopen do |handshake|
     	user = Random.rand(1...1000)
       $clients << {sock: ws, user: user}
-      ws.send "you are user #{user}."
+      ws.send "id:#{user}"
     end
 
     ws.onclose do
@@ -35,8 +35,13 @@ EventMachine.run do
 
     ws.onmessage do |msg|
       puts "Received Message: #{msg}"
+      text = msg.split(',')[1]
+      user = msg.split(',')[0].to_i
+      friend = msg.split(',')[2].to_i
       $clients.each do |socket|
-        socket[:sock].send msg
+      	if socket[:user] == friend
+         socket[:sock].send text
+        end 
       end
     end
   end
