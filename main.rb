@@ -13,18 +13,24 @@ EventMachine.run do
 	# Sinatra::Application.set :bind, "0.0.0.0"
 
   class App < Sinatra::Base
- 	
+
+    # configure do
+    #   # See: http://www.sinatrarb.com/faq.html#sessions
+    #   enable :sessions
+    #   set :session_secret, ENV['SESSION_SECRET'] || 'this is a secret shhhhh'
+    # end
+
     get '/' do
       erb :index
     end
   end
 
- $clients = []
+ $clients = {}
 
   EM::WebSocket.start(:host => '0.0.0.0', :port => '3001') do |ws|
     ws.onopen do |handshake|
     	user = Random.rand(1...1000)
-      $clients << {sock: ws, user: user}
+      $clients[user] = {sock: ws}
       ws.send "id:#{user}"
     end
 
@@ -35,14 +41,26 @@ EventMachine.run do
 
     ws.onmessage do |msg|
       puts "Received Message: #{msg}"
-      text = msg.split(',')[1]
-      user = msg.split(',')[0].to_i
-      friend = msg.split(',')[2].to_i
-      $clients.each do |socket|
-      	if socket[:user] == friend
-         socket[:sock].send text
-        end 
+      splitMsg = msg.split(':')
+      command = splitMsg[0]
+      message = splitMsg[1]
+      user_id = splitMsg[2]
+      case command
+        when 'join'
+          $clients[user_id.to_i][:pair] = message.to_i
+          $clients[message.to_i][:pair] = user_id.to_i
+          puts $clients
+        when 'chat'
+          send($clients[user_id.to_i][:pair],'message: receved ' + message + ' from #{user_id}')
+          send(user_id,'sent: '+ message)
+        when 'move'
+          send($clients[user_id.to_i][:pair],'move:'+ message)
       end
+
+    end
+
+    def send(target, text)
+     $clients[target.to_i][:sock].send text
     end
   end
 
